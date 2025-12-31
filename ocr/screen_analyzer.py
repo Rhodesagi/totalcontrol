@@ -54,29 +54,58 @@ class ScreenAnalysis:
 # ============ PATTERN DATABASE ============
 # These patterns detect screen types from OCR text
 
+# User's username on each platform (configure this)
+USER_CONFIG = {
+    "discord_username": "",  # e.g., "rhodes#1234" or just "rhodes"
+    "twitter_username": "",  # e.g., "rhodesai"
+    "slack_username": "",    # e.g., "rhodes"
+}
+
+# Generic mentions that DON'T count as personal ping
+GENERIC_MENTIONS = [
+    r"@everyone",
+    r"@here",
+    r"@channel",
+    r"@all",
+    r"@room",
+    r"@team",
+]
+
 PATTERNS = {
-    # ----- DM INDICATORS (ALLOW) -----
+    # ----- DIRECT 1-ON-1 DM (ALWAYS ALLOW) -----
     "dm": {
-        "strong": [  # High confidence
+        "strong": [  # High confidence - true 1-on-1 DM
             r"direct\s*messages?",
             r"new\s*message",
             r"send\s*a?\s*message",
             r"message\s*requests?",
             r"start\s*a?\s*(new\s*)?conversation",
             r"type\s*a\s*message",
-            r"@\w+\s+online",  # Discord DM header
+            r"@\w+\s+online",  # Discord DM header (1-on-1)
             r"friends?\s*(online|\d+)",
             r"write\s*a\s*message",
             r"chat\s*with",
         ],
         "medium": [  # Need additional context
             r"inbox",
-            r"chats?",
             r"conversations?",
             r"reply",
             r"delivered",
             r"seen\s+\d",
             r"typing\.\.\.",
+        ],
+    },
+
+    # ----- GROUP CHAT (BLOCK unless personally pinged) -----
+    "group_chat": {
+        "indicators": [  # Signs it's a group chat, not 1-on-1
+            r"\d+\s*members?",
+            r"\d+\s*participants?",
+            r"group\s*(chat|dm|message)",
+            r"and\s+\d+\s+others?",  # "John and 3 others"
+            r"#\w+",  # Channel name (Discord/Slack)
+            r"text\s*channels?",
+            r"voice\s*channels?",
         ],
     },
 
@@ -202,9 +231,110 @@ APP_SPECIFIC = {
 }
 
 
+# Ping window tracking
+PING_WINDOW_FILE = DATA_DIR / "ping_windows.json"
+PING_WINDOW_DURATION = 180  # 3 minutes after personal ping
+
 def ensure_data_dir():
     """Create data directory if needed"""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def load_ping_windows() -> dict:
+    """Load active ping windows (channel -> expiry timestamp)"""
+    if not PING_WINDOW_FILE.exists():
+        return {}
+    try:
+        with open(PING_WINDOW_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return {}
+
+
+def save_ping_windows(windows: dict):
+    """Save ping windows"""
+    ensure_data_dir()
+    with open(PING_WINDOW_FILE, 'w') as f:
+        json.dump(windows, f)
+
+
+def register_personal_ping(channel_id: str):
+    """Register a personal ping - opens window for this channel"""
+    windows = load_ping_windows()
+    windows[channel_id] = time.time() + PING_WINDOW_DURATION
+    save_ping_windows(windows)
+
+
+def is_ping_window_active(channel_id: str) -> bool:
+    """Check if ping window is still active for this channel"""
+    windows = load_ping_windows()
+    if channel_id not in windows:
+        return False
+    if time.time() > windows[channel_id]:
+        # Expired - clean up
+        del windows[channel_id]
+        save_ping_windows(windows)
+        return False
+    return True
+
+
+def is_personal_ping(text: str, app_hint: str = "") -> bool:
+    """
+    Check if text contains a PERSONAL mention of the user.
+    Returns False for @everyone/@here/@channel type mentions.
+    """
+    text_lower = text.lower()
+
+    # Check for generic mentions first - these don't count
+    for generic in GENERIC_MENTIONS:
+        if re.search(generic, text_lower, re.IGNORECASE):
+            # Found generic mention - check if there's ALSO a personal one
+            pass  # Continue checking for personal mention
+
+    # Check for personal mention based on configured username
+    app_lower = app_hint.lower()
+
+    if "discord" in app_lower and USER_CONFIG.get("discord_username"):
+        username = USER_CONFIG["discord_username"].lower()
+        # Discord: @username or username#1234
+        if re.search(rf"@{re.escape(username)}", text_lower):
+            return True
+        if re.search(rf"{re.escape(username)}#\d+", text_lower):
+            return True
+
+    if ("twitter" in app_lower or "x.com" in app_lower) and USER_CONFIG.get("twitter_username"):
+        username = USER_CONFIG["twitter_username"].lower()
+        if re.search(rf"@{re.escape(username)}", text_lower):
+            return True
+
+    if "slack" in app_lower and USER_CONFIG.get("slack_username"):
+        username = USER_CONFIG["slack_username"].lower()
+        if re.search(rf"@{re.escape(username)}", text_lower):
+            return True
+
+    # Check for reply indicators directed at user
+    reply_patterns = [
+        r"replied\s+to\s+you",
+        r"mentioned\s+you",
+        r"tagged\s+you",
+        r"@you\b",
+    ]
+    for pattern in reply_patterns:
+        if re.search(pattern, text_lower):
+            return True
+
+    return False
+
+
+def is_group_chat(text: str) -> bool:
+    """Detect if this is a group chat (not 1-on-1 DM)"""
+    text_lower = text.lower()
+
+    for pattern in PATTERNS.get("group_chat", {}).get("indicators", []):
+        if re.search(pattern, text_lower, re.IGNORECASE):
+            return True
+
+    return False
 
 
 def ocr_image(image_path: str) -> str:
@@ -227,16 +357,40 @@ def ocr_image(image_path: str) -> str:
         return ""
 
 
-def classify_text(text: str, app_hint: str = "") -> tuple[ScreenType, float, List[str]]:
+def classify_text(text: str, app_hint: str = "", channel_id: str = "") -> tuple[ScreenType, float, List[str]]:
     """
     Classify screen type from OCR text.
     Returns (screen_type, confidence, matched_patterns)
+
+    Logic:
+    - 1-on-1 DM → ALLOWED
+    - Group chat with personal ping → ALLOWED (opens 3-min window)
+    - Group chat with @everyone/@here → BLOCKED
+    - Group chat no ping → BLOCKED
+    - Feed/Reels/Explore → BLOCKED
     """
     text_lower = text.lower()
     app_lower = app_hint.lower()
 
     scores = {st: 0.0 for st in ScreenType}
     matched = {st: [] for st in ScreenType}
+
+    # === SPECIAL CASE: Group chat detection ===
+    if is_group_chat(text):
+        # It's a group chat - check for personal ping
+        if is_personal_ping(text, app_hint):
+            # Personal ping! Register window and allow
+            if channel_id:
+                register_personal_ping(channel_id)
+            return ScreenType.DM, 0.9, ["personal_ping_detected"]
+
+        # Check if we're in an active ping window
+        if channel_id and is_ping_window_active(channel_id):
+            remaining = load_ping_windows().get(channel_id, 0) - time.time()
+            return ScreenType.DM, 0.8, [f"ping_window_active:{int(remaining)}s"]
+
+        # No personal ping, no active window → BLOCK as feed
+        return ScreenType.FEED, 0.9, ["group_chat_no_personal_ping"]
 
     # Check general patterns
     for screen_type_str, pattern_groups in PATTERNS.items():

@@ -9,6 +9,154 @@ const RuleMode = {
   ALLOW_DURING: 'allowDuring' // Allowed only while condition is active
 };
 
+// ============ USER CONFIG ============
+// Set your usernames for personal ping detection
+const USER_CONFIG = {
+  discord: '',     // e.g., 'rhodes' (without #1234)
+  twitter: '',     // e.g., 'rhodesai'
+  slack: '',       // e.g., 'rhodes'
+};
+
+// Ping window duration (3 minutes after personal ping)
+const PING_WINDOW_DURATION_MS = 3 * 60 * 1000;
+
+// Generic mentions that DON'T count as personal ping
+const GENERIC_MENTIONS = [
+  '@everyone', '@here', '@channel', '@all', '@room', '@team'
+];
+
+// ============ PING WINDOW TRACKING ============
+// Stored in chrome.storage.local as { pingWindows: { channelId: expiryTimestamp } }
+
+async function getPingWindows() {
+  const data = await chrome.storage.local.get('pingWindows');
+  return data.pingWindows || {};
+}
+
+async function setPingWindow(channelId) {
+  const windows = await getPingWindows();
+  windows[channelId] = Date.now() + PING_WINDOW_DURATION_MS;
+  await chrome.storage.local.set({ pingWindows: windows });
+  console.log('[TotalControl] Ping window opened for:', channelId);
+}
+
+async function isPingWindowActive(channelId) {
+  const windows = await getPingWindows();
+  if (!windows[channelId]) return false;
+  if (Date.now() > windows[channelId]) {
+    // Expired - clean up
+    delete windows[channelId];
+    await chrome.storage.local.set({ pingWindows: windows });
+    return false;
+  }
+  return true;
+}
+
+// ============ MUTUAL PROTECTION SYSTEM ============
+// Extension <-> Desktop App watch each other
+
+// Set uninstall URL - opens intervention page when extension is removed
+chrome.runtime.setUninstallURL('https://totalcontrol.local/uninstall-detected');
+
+// Heartbeat system - desktop app monitors this
+let heartbeatInterval = null;
+const HEARTBEAT_INTERVAL = 10000; // 10 seconds
+
+function startHeartbeat() {
+  if (heartbeatInterval) return;
+
+  // Immediate heartbeat
+  sendHeartbeat();
+
+  heartbeatInterval = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+}
+
+async function sendHeartbeat() {
+  const timestamp = Date.now();
+  await chrome.storage.local.set({
+    extensionHeartbeat: timestamp,
+    extensionActive: true,
+    extensionVersion: chrome.runtime.getManifest().version
+  });
+
+  // Also try native messaging to desktop app if available
+  try {
+    chrome.runtime.sendNativeMessage('com.rhodesai.totalcontrol', {
+      type: 'heartbeat',
+      timestamp
+    });
+  } catch (e) {
+    // Native host not available - that's ok
+  }
+}
+
+// Detect suspension (extension being disabled/uninstalled)
+chrome.runtime.onSuspend.addListener(() => {
+  console.log('[TotalControl] Extension suspending - logging event');
+  // Try to notify desktop app
+  try {
+    chrome.runtime.sendNativeMessage('com.rhodesai.totalcontrol', {
+      type: 'extension_suspending',
+      timestamp: Date.now()
+    });
+  } catch (e) {}
+});
+
+// Watch for OTHER extensions being uninstalled (if we have management permission)
+if (chrome.management) {
+  chrome.management.onUninstalled.addListener((id) => {
+    // Could watch for a companion extension here
+    console.log('[TotalControl] Extension uninstalled:', id);
+  });
+
+  chrome.management.onDisabled.addListener((info) => {
+    console.log('[TotalControl] Extension disabled:', info.id);
+  });
+}
+
+// Start heartbeat on load
+startHeartbeat();
+
+// Log protection events
+async function logProtectionEvent(type, data) {
+  const events = (await chrome.storage.local.get('protectionEvents')).protectionEvents || [];
+  events.push({
+    type,
+    data,
+    timestamp: new Date().toISOString()
+  });
+  if (events.length > 100) events.shift();
+  await chrome.storage.local.set({ protectionEvents: events });
+}
+
+// Check if text contains a PERSONAL mention (not @everyone/@here)
+function hasPersonalPing(text, platform) {
+  if (!text) return false;
+  const textLower = text.toLowerCase();
+
+  // Check for generic mentions - these don't count
+  const hasGeneric = GENERIC_MENTIONS.some(g => textLower.includes(g.toLowerCase()));
+
+  // Check for personal mention based on configured username
+  const username = USER_CONFIG[platform];
+  if (username) {
+    const userLower = username.toLowerCase();
+    // @username mention
+    if (textLower.includes('@' + userLower)) {
+      return true;
+    }
+  }
+
+  // Check for "replied to you" / "mentioned you" patterns
+  const personalPatterns = [
+    'replied to you',
+    'mentioned you',
+    'tagged you',
+  ];
+
+  return personalPatterns.some(p => textLower.includes(p));
+}
+
 // Music indicators - URLs/titles/descriptions containing these are allowed on YouTube
 // From BlockerService.kt (lines 84-96) + record labels + artists markers
 const MUSIC_INDICATORS = [
@@ -252,25 +400,49 @@ async function shouldBlock(url) {
         const urlLower = url.toLowerCase();
         const pathname = new URL(url).pathname.toLowerCase();
 
-        // Twitter/X: DMs and chat always allowed
+        // Twitter/X: 1-on-1 DMs allowed, group chats need personal ping
         if (hostname.includes('twitter.com') || hostname.includes('x.com')) {
-          // DM chat: /i/chat or /i/chat/[numeric_id] or /messages
-          if (pathname.match(/^\/i\/chat(\/\d+)?$/) ||
-              pathname === '/i/chat' ||
-              pathname.startsWith('/messages') ||
-              pathname === '/notifications') {
-            console.log('[TotalControl] Twitter chat/DM allowed:', pathname);
+          // 1-on-1 DM: /i/chat/[numeric] (NOT /i/chat/g...)
+          if (pathname.match(/^\/i\/chat\/\d+$/) || pathname === '/i/chat') {
+            console.log('[TotalControl] Twitter 1-on-1 DM allowed:', pathname);
             continue;
           }
-          // Group chats /i/chat/g... are NOT auto-allowed (need ping)
+          // Messages list and notifications always allowed
+          if (pathname.startsWith('/messages') || pathname === '/notifications') {
+            console.log('[TotalControl] Twitter messages/notifications allowed:', pathname);
+            continue;
+          }
+          // Group chats /i/chat/g... need ping window
+          if (pathname.match(/^\/i\/chat\/g/)) {
+            const groupId = pathname.split('/').pop();
+            const windowActive = await isPingWindowActive('twitter:' + groupId);
+            if (windowActive) {
+              console.log('[TotalControl] Twitter group allowed (ping window):', pathname);
+              continue;
+            }
+            console.log('[TotalControl] Twitter group BLOCKED (no ping):', pathname);
+            // Fall through to block
+          }
         }
 
-        // Discord: DMs always allowed
+        // Discord: 1-on-1 DMs allowed, server channels need personal ping
         if (hostname.includes('discord.com') || hostname.includes('discordapp.com')) {
-          // DMs: /channels/@me or /channels/@me/[id]
+          // DMs: /channels/@me or /channels/@me/[id] - always allowed
           if (pathname.match(/^\/channels\/@me(\/\d+)?$/)) {
             console.log('[TotalControl] Discord DM allowed:', pathname);
             continue;
+          }
+          // Server channels: /channels/[server]/[channel] - need ping
+          const serverMatch = pathname.match(/^\/channels\/(\d+)\/(\d+)/);
+          if (serverMatch) {
+            const channelId = serverMatch[2];
+            const windowActive = await isPingWindowActive('discord:' + channelId);
+            if (windowActive) {
+              console.log('[TotalControl] Discord server allowed (ping window):', pathname);
+              continue;
+            }
+            console.log('[TotalControl] Discord server BLOCKED (no ping):', pathname);
+            // Fall through to block
           }
         }
 
