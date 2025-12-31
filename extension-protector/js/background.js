@@ -81,17 +81,23 @@ async function checkPartnerExtension() {
   }
 }
 
-function onPartnerDisabled() {
-  // Open intervention tab
-  chrome.tabs.create({
-    url: chrome.runtime.getURL('intervention.html'),
-    active: true
-  });
+async function onPartnerDisabled() {
+  console.log('[Protector] Re-enabling partner extension...');
 
-  // Log event
-  logProtectionEvent('partner_disabled', { partnerId: PARTNER_EXTENSION_ID });
-
-  // This extension continues blocking (it has full functionality)
+  // RE-ENABLE the partner extension!
+  try {
+    await chrome.management.setEnabled(PARTNER_EXTENSION_ID, true);
+    console.log('[Protector] Partner re-enabled successfully');
+    logProtectionEvent('partner_reenabled', { partnerId: PARTNER_EXTENSION_ID });
+  } catch (e) {
+    console.log('[Protector] Could not re-enable partner:', e);
+    // Only show intervention if re-enable fails
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('intervention.html'),
+      active: true
+    });
+    logProtectionEvent('partner_disabled_reenable_failed', { partnerId: PARTNER_EXTENSION_ID, error: e.message });
+  }
 }
 
 function onPartnerUninstalled() {
