@@ -1,0 +1,148 @@
+/* TotalControl Block Overlay - Cold War Aesthetic */
+
+#totalcontrol-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: #1a1a0f !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+.tc-block-container {
+  text-align: center;
+  padding: 40px;
+  max-width: 500px;
+}
+
+.tc-header {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ffb000;
+  letter-spacing: 4px;
+  margin-bottom: 5px;
+  text-shadow: 0 0 10px rgba(255, 176, 0, 0.5);
+}
+
+.tc-subheader {
+  font-size: 12px;
+  color: #6b6348;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+  font-style: italic;
+}
+
+.tc-lock-icon {
+  color: #ff3333;
+  margin-bottom: 30px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.95); }
+}
+
+.tc-message {
+  background: #2a2a1f;
+  border: 2px solid #3d3d2d;
+  padding: 25px;
+  margin-bottom: 25px;
+}
+
+.tc-blocked-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ff3333;
+  margin-bottom: 15px;
+  letter-spacing: 3px;
+}
+
+.tc-rule-text {
+  font-size: 18px;
+  color: #d4c4a0;
+  margin-bottom: 10px;
+}
+
+.tc-until-text {
+  font-size: 16px;
+  color: #ffb000;
+  font-weight: bold;
+}
+
+.tc-progress-container {
+  margin-bottom: 25px;
+}
+
+.tc-progress-bar {
+  height: 20px;
+  background: #2a2a1f;
+  border: 2px solid #3d3d2d;
+  overflow: hidden;
+}
+
+.tc-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #006600 0%, #00ff00 100%);
+  transition: width 0.5s ease;
+}
+
+.tc-progress-text {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #6b6348;
+}
+
+.tc-footer {
+  font-size: 12px;
+  color: #6b6348;
+  font-style: italic;
+}
+
+/* Hide everything behind the overlay */
+#totalcontrol-overlay ~ * {
+  visibility: hidden !important;
+}
+
+/* YouTube partial overlay - positioned below masthead */
+#totalcontrol-overlay.tc-youtube-partial {
+  top: 56px !important;
+  height: calc(100vh - 56px) !important;
+  border-top: 3px solid #ffb000 !important;
+  /* Lower z-index than YouTube masthead (which we set to 10000) */
+  z-index: 9000 !important;
+}
+
+/* Music button for YouTube block overlay */
+.tc-music-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 30px;
+  margin: 20px 0;
+  background: linear-gradient(180deg, #ff0000 0%, #cc0000 100%);
+  border: 2px solid #ff3333;
+  color: #ffffff !important;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+}
+
+.tc-music-button:hover {
+  background: linear-gradient(180deg, #ff3333 0%, #ff0000 100%);
+  box-shadow: 0 6px 20px rgba(255, 0, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.tc-music-button svg {
+  fill: #ffffff;
+}

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100%" height="100%" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <!-- Terminal Cypherpunk Missile Intercept - FULLSCREEN -->
+  <defs>
+    <pattern id="scanlines" width="4" height="4" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="4" y2="0" stroke="#000" stroke-width="1" opacity="0.2"/>
+    </pattern>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes missileMove {
+      0% { transform: translate(0, 0); }
+      60% { transform: translate(250px, 0); }
+      65% { transform: translate(250px, 0) scale(0.3); opacity: 0.3; }
+      100% { transform: translate(250px, 0) scale(0); opacity: 0; }
+    }
+    @keyframes interceptorMove {
+      0% { transform: translate(0, 0); }
+      55% { transform: translate(-200px, 0); }
+      60% { transform: translate(-200px, 0) scale(0.3); }
+      100% { transform: translate(-200px, 0) scale(0); }
+    }
+    @keyframes explosion {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(0); opacity: 0; }
+      60% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+    @keyframes flame {
+      0%, 100% { opacity: 1; transform: scaleX(1); }
+      50% { opacity: 0.5; transform: scaleX(0.7); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.02); }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .missile { animation: missileMove 4s ease-in-out infinite; }
+    .interceptor { animation: interceptorMove 4s ease-in-out infinite; }
+    .explosion { animation: explosion 4s ease-out infinite; transform-origin: center; }
+    .flame { animation: flame 0.15s ease-in-out infinite; }
+    .brain-pulse { animation: pulse 2s ease-in-out infinite; }
+    .cursor { animation: blink 1s step-end infinite; }
+  </style>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="#050505"/>
+  <rect width="800" height="600" fill="url(#scanlines)"/>
+
+  <!-- Terminal header -->
+  <rect x="0" y="0" width="800" height="30" fill="#111"/>
+  <text x="15" y="20" fill="#00ff00" font-family="monospace" font-size="14">root@totalcontrol:~$ ./intercept.sh --target=youtube.com --mode=DESTROY</text>
+  <rect class="cursor" x="520" y="6" width="10" height="18" fill="#00ff00"/>
+
+  <!-- BIG Brain Target (right side, centered vertically) -->
+  <g transform="translate(620, 300)" filter="url(#strongGlow)" class="brain-pulse">
+    <!-- Brain outline -->
+    <ellipse cx="0" cy="0" rx="100" ry="90" fill="#080808" stroke="#00ff00" stroke-width="3"/>
+    <!-- Brain folds -->
+    <path d="M-80 -20 Q-40 -70 20 -60 Q60 -55 80 -30" fill="none" stroke="#00ff00" stroke-width="2" opacity="0.6"/>
+    <path d="M-70 10 Q-20 -20 40 -10 Q75 0 85 20" fill="none" stroke="#00ff00" stroke-width="2" opacity="0.6"/>
+    <path d="M-75 40 Q-30 20 30 30 Q70 40 80 60" fill="none" stroke="#00ff00" stroke-width="2" opacity="0.6"/>
+    <!-- Frontal lobe highlight -->
+    <ellipse cx="-30" cy="-30" rx="40" ry="35" fill="none" stroke="#00ff88" stroke-width="2" opacity="0.4"/>
+    <!-- Center text -->
+    <text x="0" y="10" text-anchor="middle" fill="#00ff00" font-family="monospace" font-size="20" font-weight="bold">BRAIN</text>
+    <text x="0" y="130" text-anchor="middle" fill="#00ff00" font-family="monospace" font-size="14">[PROTECTED]</text>
+  </g>
+
+  <!-- Defense stats - below brain -->
+  <g transform="translate(520, 440)">
+    <rect x="0" y="0" width="200" height="100" fill="#0a0a0a" stroke="#00ff00" stroke-width="1" opacity="0.8"/>
+    <text fill="#00ff00" font-family="monospace" font-size="12">
+      <tspan x="10" dy="20">┌── DEFENSE GRID ──┐</tspan>
+      <tspan x="10" dy="18">│ intercepted: 247 │</tspan>
+      <tspan x="10" dy="18">│ success:    100% │</tspan>
+      <tspan x="10" dy="18">│ shield:   ACTIVE │</tspan>
+      <tspan x="10" dy="18">└──────────────────┘</tspan>
+    </text>
+  </g>
+
+  <!-- YouTube Missile - coming from left, PARALLEL with brain center (Y=300) -->
+  <g class="missile" transform="translate(50, 280)">
+    <!-- Missile body -->
+    <ellipse cx="70" cy="20" rx="70" ry="22" fill="#cc0000"/>
+    <!-- Nose cone -->
+    <polygon points="140,0 180,20 140,40" fill="#aa0000"/>
+    <!-- Tail fins -->
+    <polygon points="10,5 -20,-15 10,12" fill="#880000"/>
+    <polygon points="10,28 -20,55 10,35" fill="#880000"/>
+    <polygon points="5,20 -15,20 0,10 0,30" fill="#990000"/>
+    <!-- YouTube logo -->
+    <rect x="35" y="5" width="60" height="30" rx="6" fill="#fff"/>
+    <rect x="40" y="10" width="50" height="20" rx="4" fill="#ff0000"/>
+    <polygon points="55,14 55,26 72,20" fill="#fff"/>
+    <!-- Flame trail -->
+    <g class="flame" transform="translate(-10, 20)">
+      <polygon points="0,0 -50,-10 -35,0 -50,10" fill="#ff6600"/>
+      <polygon points="-30,0 -70,-7 -55,0 -70,7" fill="#ffaa00" opacity="0.8"/>
+      <polygon points="-55,0 -90,-4 -75,0 -90,4" fill="#ffcc00" opacity="0.5"/>
+    </g>
+  </g>
+
+  <!-- TC Interceptor - launches from LEFT SIDE of brain, PARALLEL (same Y level) -->
+  <g class="interceptor" transform="translate(520, 285)">
+    <!-- Body pointing LEFT -->
+    <ellipse cx="0" cy="15" rx="45" ry="14" fill="#00aa44"/>
+    <!-- Nose pointing left -->
+    <polygon points="-45,5 -75,15 -45,25" fill="#00ff66"/>
+    <!-- Fins on right side -->
+    <polygon points="35,5 55,-8 40,8" fill="#008833"/>
+    <polygon points="35,22 55,38 40,25" fill="#008833"/>
+    <!-- TC label -->
+    <text x="0" y="20" text-anchor="middle" fill="#fff" font-family="monospace" font-size="12" font-weight="bold">TC</text>
+    <!-- Flame pointing RIGHT (opposite of travel) -->
+    <g class="flame">
+      <polygon points="40,15 70,8 55,15 70,22" fill="#00ff88"/>
+      <polygon points="55,15 85,10 70,15 85,20" fill="#88ffaa" opacity="0.7"/>
+    </g>
+  </g>
+
+  <!-- Explosion - at intercept point (middle, same Y level) -->
+  <g class="explosion" transform="translate(350, 300)">
+    <circle cx="0" cy="0" r="60" fill="#ff8800" opacity="0.3"/>
+    <circle cx="0" cy="0" r="45" fill="#ffaa00" opacity="0.5"/>
+    <circle cx="0" cy="0" r="30" fill="#ffcc00" opacity="0.7"/>
+    <circle cx="0" cy="0" r="15" fill="#ffffff" opacity="0.9"/>
+    <!-- Explosion rays -->
+    <g stroke="#ffcc00" stroke-width="3">
+      <line x1="-50" y1="0" x2="-80" y2="0"/>
+      <line x1="50" y1="0" x2="80" y2="0"/>
+      <line x1="0" y1="-50" x2="0" y2="-80"/>
+      <line x1="0" y1="50" x2="0" y2="80"/>
+      <line x1="-35" y1="-35" x2="-55" y2="-55"/>
+      <line x1="35" y1="-35" x2="55" y2="-55"/>
+      <line x1="-35" y1="35" x2="-55" y2="55"/>
+      <line x1="35" y1="35" x2="55" y2="55"/>
+    </g>
+    <text x="0" y="100" text-anchor="middle" fill="#ffb000" font-family="monospace" font-size="18" font-weight="bold">[NEUTRALIZED]</text>
+  </g>
+
+  <!-- Status readout - top left -->
+  <g transform="translate(15, 50)">
+    <text fill="#00ff00" font-family="monospace" font-size="14" opacity="0.9">
+      <tspan x="0" dy="0">[SYS] Incoming threat: youtube.com</tspan>
+      <tspan x="0" dy="22">[SYS] Threat type: DOPAMINE_MISSILE</tspan>
+      <tspan x="0" dy="22">[SYS] Launching TC interceptor...</tspan>
+      <tspan x="0" dy="22" fill="#ffb000">[HIT] Target destroyed @ 0.003s</tspan>
+      <tspan x="0" dy="22">[SYS] Brain integrity: 100%</tspan>
+    </text>
+  </g>
+
+  <!-- Background threats queue (bottom left) -->
+  <g transform="translate(15, 480)">
+    <text fill="#666" font-family="monospace" font-size="11">THREAT QUEUE:</text>
+    <!-- X/Twitter -->
+    <g transform="translate(0, 20)" opacity="0.5">
+      <rect x="0" y="0" width="35" height="20" rx="3" fill="#000" stroke="#333"/>
+      <text x="17" y="15" text-anchor="middle" fill="#fff" font-family="Arial" font-size="12" font-weight="bold">X</text>
+      <text x="45" y="15" fill="#666" font-family="monospace" font-size="10">twitter.com</text>
+    </g>
+    <!-- TikTok -->
+    <g transform="translate(0, 45)" opacity="0.4">
+      <rect x="0" y="0" width="35" height="20" rx="3" fill="#000"/>
+      <text x="15" y="15" fill="#00f2ea" font-size="12">♪</text>
+      <text x="22" y="15" fill="#ff0050" font-size="12">♪</text>
+      <text x="45" y="15" fill="#666" font-family="monospace" font-size="10">tiktok.com</text>
+    </g>
+    <!-- Reddit -->
+    <g transform="translate(0, 70)" opacity="0.3">
+      <rect x="0" y="0" width="35" height="20" rx="3" fill="#ff4500"/>
+      <circle cx="17" cy="10" r="6" fill="#fff"/>
+      <text x="45" y="15" fill="#666" font-family="monospace" font-size="10">reddit.com</text>
+    </g>
+  </g>
+
+  <!-- Title -->
+  <text x="785" y="585" text-anchor="end" fill="#ffb000" font-family="monospace" font-size="18" font-weight="bold" filter="url(#glow)">TOTAL_CONTROL v2.0</text>
+  <text x="785" y="565" text-anchor="end" fill="#444" font-family="monospace" font-size="12">IMPULSE DEFENSE SYSTEM ACTIVE</text>
+</svg>

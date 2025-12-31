@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Evolution Slap Concept - Evolved human slapping caveman -->
+  <rect width="400" height="300" fill="#1a1a0f"/>
+
+  <!-- Ground line -->
+  <line x1="50" y1="250" x2="350" y2="250" stroke="#3d3d2d" stroke-width="2"/>
+
+  <!-- Left: Caveman/Primitive reaching for phone -->
+  <g transform="translate(100, 180)">
+    <!-- Caveman body - hunched -->
+    <ellipse cx="0" cy="20" rx="25" ry="35" fill="#8b6b4b"/>
+    <!-- Head -->
+    <ellipse cx="-5" cy="-25" rx="22" ry="20" fill="#a08060"/>
+    <!-- Brow ridge -->
+    <path d="M-25 -30 Q-5 -45 15 -30" stroke="#6b5040" stroke-width="4" fill="none"/>
+    <!-- Eyes (wanting) -->
+    <circle cx="-12" cy="-25" r="5" fill="#fff"/>
+    <circle cx="4" cy="-25" r="5" fill="#fff"/>
+    <circle cx="-10" cy="-25" r="3" fill="#222"/>
+    <circle cx="6" cy="-25" r="3" fill="#222"/>
+    <!-- Drooling mouth -->
+    <path d="M-10 -12 Q0 -5 10 -12" stroke="#6b5040" stroke-width="2" fill="none"/>
+    <!-- Arms reaching forward -->
+    <path d="M20 10 Q50 -10 70 0" stroke="#8b6b4b" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <circle cx="75" cy="2" r="8" fill="#a08060"/>
+    <!-- Legs -->
+    <path d="M-10 55 L-15 70" stroke="#8b6b4b" stroke-width="10" stroke-linecap="round"/>
+    <path d="M10 55 L15 70" stroke="#8b6b4b" stroke-width="10" stroke-linecap="round"/>
+    <!-- Label -->
+    <text x="0" y="90" text-anchor="middle" fill="#ff6666" font-family="monospace" font-size="9">"ooh shiny dopamine"</text>
+  </g>
+
+  <!-- Phone/temptation being reached for -->
+  <g transform="translate(200, 160)">
+    <rect x="-12" y="-20" width="24" height="40" rx="3" fill="#333" stroke="#666" stroke-width="1"/>
+    <rect x="-10" y="-17" width="20" height="32" fill="#4488ff"/>
+    <!-- App icon on phone (YouTube-like) -->
+    <rect x="-6" y="-10" width="12" height="8" fill="#ff0000" rx="1"/>
+    <polygon points="0,-6 4,-2 0,2" fill="#fff"/>
+    <!-- Glow effect -->
+    <circle cx="0" cy="0" r="30" fill="#4488ff" opacity="0.1"/>
+  </g>
+
+  <!-- Right: Modern Human intercepting with SLAP -->
+  <g transform="translate(280, 170)">
+    <!-- Body - upright, confident -->
+    <ellipse cx="0" cy="15" rx="20" ry="30" fill="#4a7a9a"/>
+    <!-- Head - larger forehead -->
+    <ellipse cx="0" cy="-30" rx="18" ry="20" fill="#d4b896"/>
+    <!-- Big forehead (frontal lobe) -->
+    <ellipse cx="0" cy="-42" rx="16" ry="10" fill="#e8d4c0"/>
+    <!-- Eyes (determined) -->
+    <line x1="-10" y1="-32" x2="-4" y2="-30" stroke="#222" stroke-width="2"/>
+    <line x1="4" y1="-30" x2="10" y2="-32" stroke="#222" stroke-width="2"/>
+    <circle cx="-7" cy="-28" r="2" fill="#222"/>
+    <circle cx="7" cy="-28" r="2" fill="#222"/>
+    <!-- Determined mouth -->
+    <line x1="-6" y1="-18" x2="6" y2="-18" stroke="#8b6b4b" stroke-width="2"/>
+    <!-- SLAPPING ARM -->
+    <path d="M-20 0 Q-60 -20 -90 10" stroke="#d4b896" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <!-- Hand (open palm for slap) -->
+    <ellipse cx="-95" cy="15" rx="12" ry="10" fill="#d4b896"/>
+    <!-- Legs -->
+    <path d="M-8 45 L-10 70" stroke="#4a7a9a" stroke-width="8" stroke-linecap="round"/>
+    <path d="M8 45 L10 70" stroke="#4a7a9a" stroke-width="8" stroke-linecap="round"/>
+    <!-- Label -->
+    <text x="0" y="90" text-anchor="middle" fill="#00ff66" font-family="monospace" font-size="9">"not today"</text>
+  </g>
+
+  <!-- SLAP effect -->
+  <g transform="translate(170, 140)">
+    <text x="0" y="0" text-anchor="middle" fill="#ffb000" font-family="monospace" font-size="24" font-weight="bold">SLAP!</text>
+    <!-- Impact lines -->
+    <line x1="-40" y1="-15" x2="-55" y2="-25" stroke="#ffcc00" stroke-width="3"/>
+    <line x1="-35" y1="5" x2="-50" y2="10" stroke="#ffcc00" stroke-width="3"/>
+    <line x1="40" y1="-15" x2="55" y2="-25" stroke="#ffcc00" stroke-width="3"/>
+    <line x1="35" y1="5" x2="50" y2="10" stroke="#ffcc00" stroke-width="3"/>
+    <!-- Stars -->
+    <text x="-50" y="-10" fill="#ffff00" font-size="14">*</text>
+    <text x="50" y="-5" fill="#ffff00" font-size="14">*</text>
+    <text x="-30" y="20" fill="#ffff00" font-size="12">*</text>
+  </g>
+
+  <!-- Evolution arrow at bottom -->
+  <g transform="translate(200, 270)">
+    <line x1="-100" y1="0" x2="100" y2="0" stroke="#3d3d2d" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="-80" y="-8" fill="#6b6348" font-family="monospace" font-size="8">IMPULSE</text>
+    <text x="60" y="-8" fill="#6b6348" font-family="monospace" font-size="8">CONTROL</text>
+  </g>
+
+  <!-- Title -->
+  <text x="200" y="25" text-anchor="middle" fill="#ffb000" font-family="monospace" font-size="16" font-weight="bold" letter-spacing="3">TOTAL CONTROL</text>
+  <text x="200" y="42" text-anchor="middle" fill="#6b6348" font-family="monospace" font-size="10">EVOLUTION IN ACTION</text>
+</svg>

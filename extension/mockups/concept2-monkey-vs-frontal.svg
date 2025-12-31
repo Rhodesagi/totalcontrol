@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Monkey Brain vs Frontal Lobe Concept -->
+  <rect width="400" height="300" fill="#1a1a0f"/>
+
+  <!-- Left side: Monkey/Primitive Brain firing -->
+  <g transform="translate(80, 150)">
+    <!-- Monkey silhouette -->
+    <ellipse cx="0" cy="-20" rx="30" ry="25" fill="#8b5a2b"/>
+    <ellipse cx="0" cy="10" rx="25" ry="30" fill="#8b5a2b"/>
+    <!-- Monkey face -->
+    <ellipse cx="0" cy="-20" rx="20" ry="15" fill="#d4a574"/>
+    <circle cx="-8" cy="-22" r="4" fill="#222"/>
+    <circle cx="8" cy="-22" r="4" fill="#222"/>
+    <ellipse cx="0" cy="-12" rx="8" ry="5" fill="#a08060"/>
+    <!-- Monkey ears -->
+    <circle cx="-28" cy="-20" r="10" fill="#d4a574"/>
+    <circle cx="28" cy="-20" r="10" fill="#d4a574"/>
+    <!-- Arm throwing -->
+    <path d="M25 0 Q60 -30 80 -20" stroke="#8b5a2b" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <!-- Label -->
+    <text x="0" y="60" text-anchor="middle" fill="#ff6666" font-family="monospace" font-size="10" font-weight="bold">MONKEY BRAIN</text>
+    <text x="0" y="72" text-anchor="middle" fill="#6b6348" font-family="monospace" font-size="8">"want dopamine NOW"</text>
+  </g>
+
+  <!-- Dopamine missile from monkey -->
+  <g transform="translate(170, 110)">
+    <ellipse cx="0" cy="0" rx="25" ry="8" fill="#ff4444"/>
+    <polygon points="25,0 35,-5 35,5" fill="#ff6666"/>
+    <rect x="-15" y="-5" width="30" height="10" fill="#222" rx="2"/>
+    <text x="0" y="3" text-anchor="middle" fill="#ff4444" font-family="monospace" font-size="7">CRAVING</text>
+  </g>
+
+  <!-- Right side: Frontal Lobe with shield -->
+  <g transform="translate(320, 150)">
+    <!-- Brain shape (frontal lobe emphasized) -->
+    <ellipse cx="0" cy="-10" rx="40" ry="35" fill="#e8d4d4"/>
+    <path d="M-35 -20 Q-20 -50 20 -45 Q40 -40 35 -10" fill="#d4b8b8" stroke="#a08080" stroke-width="1"/>
+    <!-- Frontal lobe highlight -->
+    <ellipse cx="-15" cy="-25" rx="20" ry="18" fill="#98d498" stroke="#5a8a5a" stroke-width="2"/>
+    <text x="-15" y="-22" text-anchor="middle" fill="#2d4a2d" font-family="monospace" font-size="7" font-weight="bold">FRONTAL</text>
+    <!-- Shield -->
+    <path d="M-60 -50 L-60 20 Q-60 50 0 60 Q60 50 60 20 L60 -50 Z"
+          fill="none" stroke="#00ff66" stroke-width="3" opacity="0.8"/>
+    <path d="M-50 -40 L-50 15 Q-50 40 0 48 Q50 40 50 15 L50 -40 Z"
+          fill="#00aa44" opacity="0.2"/>
+    <!-- Label -->
+    <text x="0" y="80" text-anchor="middle" fill="#00ff66" font-family="monospace" font-size="10" font-weight="bold">PREFRONTAL CORTEX</text>
+    <text x="0" y="92" text-anchor="middle" fill="#6b6348" font-family="monospace" font-size="8">"long-term goals"</text>
+  </g>
+
+  <!-- Block effect - craving deflected -->
+  <g transform="translate(240, 100)">
+    <text x="0" y="0" text-anchor="middle" fill="#ffb000" font-family="monospace" font-size="14" font-weight="bold">BLOCKED</text>
+    <!-- Deflection sparks -->
+    <line x1="-20" y1="10" x2="-35" y2="25" stroke="#ffcc00" stroke-width="2"/>
+    <line x1="0" y1="15" x2="0" y2="35" stroke="#ffcc00" stroke-width="2"/>
+    <line x1="20" y1="10" x2="35" y2="25" stroke="#ffcc00" stroke-width="2"/>
+  </g>
+
+  <!-- Title -->
+  <text x="200" y="25" text-anchor="middle" fill="#ffb000" font-family="monospace" font-size="16" font-weight="bold" letter-spacing="3">TOTAL CONTROL</text>
+  <text x="200" y="285" text-anchor="middle" fill="#6b6348" font-family="monospace" font-size="10">IMPULSE DEFENSE ACTIVE</text>
+</svg>

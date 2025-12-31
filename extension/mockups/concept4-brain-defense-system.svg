@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Brain Defense System - Full Cold War Style -->
+  <defs>
+    <radialGradient id="radar" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a3a1a"/>
+      <stop offset="100%" stop-color="#0a1a0a"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background - Radar screen -->
+  <rect width="400" height="300" fill="url(#radar)"/>
+
+  <!-- Radar sweep line (static representation) -->
+  <line x1="200" y1="150" x2="350" y2="80" stroke="#00ff00" stroke-width="2" opacity="0.3"/>
+
+  <!-- Radar circles -->
+  <circle cx="200" cy="150" r="120" fill="none" stroke="#00ff00" stroke-width="1" opacity="0.2"/>
+  <circle cx="200" cy="150" r="90" fill="none" stroke="#00ff00" stroke-width="1" opacity="0.2"/>
+  <circle cx="200" cy="150" r="60" fill="none" stroke="#00ff00" stroke-width="1" opacity="0.2"/>
+  <circle cx="200" cy="150" r="30" fill="none" stroke="#00ff00" stroke-width="1" opacity="0.2"/>
+
+  <!-- Central brain (to protect) -->
+  <g transform="translate(200, 150)">
+    <ellipse cx="0" cy="0" rx="25" ry="22" fill="#2a4a2a" stroke="#00ff00" stroke-width="2"/>
+    <path d="M-20 -5 Q0 -18 18 -8" fill="none" stroke="#00ff00" stroke-width="1" opacity="0.7"/>
+    <path d="M-18 5 Q0 12 16 3" fill="none" stroke="#00ff00" stroke-width="1" opacity="0.7"/>
+    <text x="0" y="4" text-anchor="middle" fill="#00ff00" font-family="monospace" font-size="8">BRAIN</text>
+  </g>
+
+  <!-- Incoming threats (multiple missiles from different angles) -->
+  <!-- Threat 1: YouTube -->
+  <g transform="translate(60, 80)">
+    <ellipse cx="0" cy="0" rx="20" ry="6" fill="#ff0000"/>
+    <polygon points="20,0 28,-4 28,4" fill="#ff4444"/>
+    <text x="-5" y="3" fill="#fff" font-family="monospace" font-size="6">YT</text>
+    <!-- Trajectory line -->
+    <line x1="25" y1="0" x2="100" y2="50" stroke="#ff0000" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+  </g>
+
+  <!-- Threat 2: Twitter -->
+  <g transform="translate(50, 200)">
+    <ellipse cx="0" cy="0" rx="20" ry="6" fill="#1da1f2"/>
+    <polygon points="20,0 28,-4 28,4" fill="#4db8ff"/>
+    <text x="-5" y="3" fill="#fff" font-family="monospace" font-size="6">X</text>
+    <line x1="25" y1="0" x2="110" y2="-30" stroke="#1da1f2" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+  </g>
+
+  <!-- Threat 3: TikTok -->
+  <g transform="translate(340, 60)">
+    <ellipse cx="0" cy="0" rx="20" ry="6" fill="#ff0050"/>
+    <polygon points="-20,0 -28,-4 -28,4" fill="#ff3370"/>
+    <text x="-5" y="3" fill="#fff" font-family="monospace" font-size="5">TIK</text>
+    <line x1="-25" y1="0" x2="-100" y2="60" stroke="#ff0050" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+  </g>
+
+  <!-- Defense interceptors -->
+  <!-- Interceptor 1 -->
+  <g transform="translate(120, 120)">
+    <ellipse cx="0" cy="0" rx="12" ry="4" fill="#00ff00"/>
+    <polygon points="12,0 18,-3 18,3" fill="#00ff88"/>
+    <text x="-2" y="2" fill="#003300" font-family="monospace" font-size="5">TC</text>
+  </g>
+
+  <!-- Interceptor 2 -->
+  <g transform="translate(130, 180)">
+    <ellipse cx="0" cy="0" rx="12" ry="4" fill="#00ff00"/>
+    <polygon points="12,0 18,-3 18,3" fill="#00ff88"/>
+    <text x="-2" y="2" fill="#003300" font-family="monospace" font-size="5">TC</text>
+  </g>
+
+  <!-- Explosion effects (intercepts) -->
+  <g transform="translate(100, 100)">
+    <circle cx="0" cy="0" r="12" fill="#ffff00" opacity="0.6"/>
+    <circle cx="0" cy="0" r="8" fill="#ffffff" opacity="0.8"/>
+  </g>
+
+  <g transform="translate(110, 175)">
+    <circle cx="0" cy="0" r="10" fill="#ffff00" opacity="0.6"/>
+    <circle cx="0" cy="0" r="6" fill="#ffffff" opacity="0.8"/>
+  </g>
+
+  <!-- Status panel - top left -->
+  <g transform="translate(15, 15)">
+    <rect x="0" y="0" width="100" height="60" fill="#0a1a0a" stroke="#00ff00" stroke-width="1"/>
+    <text x="50" y="15" text-anchor="middle" fill="#00ff00" font-family="monospace" font-size="8">THREAT LEVEL</text>
+    <rect x="10" y="22" width="80" height="10" fill="#1a1a0a" stroke="#00ff00" stroke-width="1"/>
+    <rect x="11" y="23" width="60" height="8" fill="#ff0000"/>
+    <text x="50" y="45" text-anchor="middle" fill="#ffb000" font-family="monospace" font-size="10" font-weight="bold">HIGH</text>
+    <text x="50" y="55" text-anchor="middle" fill="#00ff00" font-family="monospace" font-size="7">DEFENSES ACTIVE</text>
+  </g>
+
+  <!-- Blocked counter - top right -->
+  <g transform="translate(285, 15)">
+    <rect x="0" y="0" width="100" height="60" fill="#0a1a0a" stroke="#00ff00" stroke-width="1"/>
+    <text x="50" y="15" text-anchor="middle" fill="#00ff00" font-family="monospace" font-size="8">BLOCKED TODAY</text>
+    <text x="50" y="42" text-anchor="middle" fill="#ffb000" font-family="monospace" font-size="24" font-weight="bold">47</text>
+    <text x="50" y="55" text-anchor="middle" fill="#00ff00" font-family="monospace" font-size="7">IMPULSES NEUTRALIZED</text>
+  </g>
+
+  <!-- Title bar at bottom -->
+  <rect x="0" y="270" width="400" height="30" fill="#0a1a0a"/>
+  <text x="200" y="290" text-anchor="middle" fill="#ffb000" font-family="monospace" font-size="14" font-weight="bold" letter-spacing="4">TOTAL CONTROL DEFENSE GRID</text>
+</svg>
