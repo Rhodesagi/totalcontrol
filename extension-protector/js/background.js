@@ -55,12 +55,12 @@ async function isPingWindowActive(channelId) {
 // ============ MUTUAL PROTECTION SYSTEM ============
 // Two extensions watch each other - can't disable both at once
 
-// This is the MAIN TotalControl extension
-const IS_PROTECTOR = false;
-const PARTNER_EXTENSION_ID = '';  // Set after installing Protector extension
+// This is the PROTECTOR extension
+const IS_PROTECTOR = true;
+const PARTNER_EXTENSION_ID = '';  // Set after installing main TotalControl extension
 
 // Set uninstall URL
-chrome.runtime.setUninstallURL('https://totalcontrol.local/main-uninstalled');
+chrome.runtime.setUninstallURL('https://totalcontrol.local/protector-uninstalled');
 
 // Watch for partner extension being disabled/uninstalled
 async function checkPartnerExtension() {
@@ -70,33 +70,43 @@ async function checkPartnerExtension() {
     const info = await chrome.management.get(PARTNER_EXTENSION_ID);
 
     if (!info.enabled) {
-      console.log('[TotalControl] Protector extension DISABLED');
+      // Partner is disabled! Alert and take over
+      console.log('[Protector] Partner extension DISABLED - taking over');
       onPartnerDisabled();
     }
   } catch (e) {
-    console.log('[TotalControl] Protector extension UNINSTALLED');
+    // Extension not found - uninstalled!
+    console.log('[Protector] Partner extension UNINSTALLED - taking over');
     onPartnerUninstalled();
   }
 }
 
 function onPartnerDisabled() {
+  // Open intervention tab
   chrome.tabs.create({
     url: chrome.runtime.getURL('intervention.html'),
     active: true
   });
+
+  // Log event
   logProtectionEvent('partner_disabled', { partnerId: PARTNER_EXTENSION_ID });
+
+  // This extension continues blocking (it has full functionality)
 }
 
 function onPartnerUninstalled() {
+  // Open intervention tab
   chrome.tabs.create({
     url: chrome.runtime.getURL('intervention.html'),
     active: true
   });
+
+  // Log event
   logProtectionEvent('partner_uninstalled', { partnerId: PARTNER_EXTENSION_ID });
 }
 
-// Check partner every 6 seconds
-chrome.alarms.create('checkPartner', { periodInMinutes: 0.1 });
+// Check partner every 5 seconds
+chrome.alarms.create('checkPartner', { periodInMinutes: 0.1 }); // ~6 seconds
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'checkPartner') {
@@ -104,7 +114,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-// Watch management events
+// Also check on management events
 if (chrome.management) {
   chrome.management.onDisabled.addListener((info) => {
     if (info.id === PARTNER_EXTENSION_ID) {

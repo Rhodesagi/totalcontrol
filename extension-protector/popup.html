@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 350px;
+      min-height: 400px;
+      background: #1a1a0f;
+      color: #d4c4a0;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    .header {
+      background: #3d3d2d;
+      padding: 15px;
+      text-align: center;
+      border-bottom: 2px solid #ffb000;
+    }
+    .header h1 {
+      color: #ffb000;
+      font-size: 16px;
+      letter-spacing: 2px;
+    }
+    .header .subtitle {
+      color: #6b6348;
+      font-size: 10px;
+      margin-top: 5px;
+    }
+    .content { padding: 15px; }
+    .section {
+      background: #2a2a1f;
+      border: 1px solid #3d3d2d;
+      margin-bottom: 12px;
+      padding: 12px;
+    }
+    .section-title {
+      color: #ffb000;
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 11px;
+    }
+    .rule {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: #1a1a0f;
+      margin-bottom: 5px;
+      border-left: 3px solid #ff3333;
+    }
+    .rule.met { border-left-color: #00ff00; }
+    .rule-text { flex: 1; font-size: 11px; }
+    .rule-status {
+      font-size: 10px;
+      color: #6b6348;
+      margin-left: 10px;
+    }
+    .rule-delete {
+      background: none;
+      border: none;
+      color: #ff3333;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 5px;
+    }
+    .add-btn {
+      width: 100%;
+      padding: 10px;
+      background: #ffb000;
+      color: #1a1a0f;
+      border: none;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .add-btn:hover { background: #cc8c00; }
+
+    /* Add Rule Form */
+    .add-form { display: none; }
+    .add-form.active { display: block; }
+    .form-row { margin-bottom: 10px; }
+    .form-label {
+      color: #ffb000;
+      font-size: 10px;
+      margin-bottom: 4px;
+      display: block;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      background: #1a1a0f;
+      border: 1px solid #3d3d2d;
+      color: #d4c4a0;
+      font-family: inherit;
+      font-size: 11px;
+    }
+    .category-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .chip {
+      padding: 4px 8px;
+      background: #3d3d2d;
+      border: none;
+      color: #d4c4a0;
+      font-family: inherit;
+      font-size: 10px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .chip.selected {
+      background: #ffb000;
+      color: #1a1a0f;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .btn-row button {
+      flex: 1;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-cancel {
+      background: #3d3d2d;
+      color: #d4c4a0;
+    }
+    .btn-save {
+      background: #ffb000;
+      color: #1a1a0f;
+      font-weight: bold;
+    }
+    .empty {
+      text-align: center;
+      color: #6b6348;
+      padding: 20px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>TOTAL CONTROL</h1>
+    <div class="subtitle">UNTIL &bull; DURING &bull; ALLOW</div>
+  </div>
+
+  <div class="content">
+    <div class="section">
+      <div class="section-title">YOUR RULES</div>
+      <div id="rules-list">
+        <div class="empty">No rules yet. Add one below.</div>
+      </div>
+    </div>
+
+    <div class="section add-form" id="add-form">
+      <div class="section-title">NEW RULE</div>
+      <div class="form-row">
+        <label class="form-label">RULE TYPE:</label>
+        <select id="rule-mode">
+          <option value="until">NO...UNTIL (block until goal met)</option>
+          <option value="during">NO...DURING (block while active)</option>
+          <option value="allowDuring">ONLY DURING (allow only while active)</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label" id="sites-label">BLOCK (quick select):</label>
+        <div class="category-chips" id="category-chips"></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Or type sites:</label>
+        <input type="text" id="block-input" placeholder="netflix.com, youtube.com">
+      </div>
+      <div class="form-row">
+        <label class="form-label" id="condition-label">UNTIL:</label>
+        <select id="condition-type">
+          <option value="steps">Steps</option>
+          <option value="time">Time</option>
+          <option value="timeRange">Time Range</option>
+          <option value="workout">Workout</option>
+          <option value="schedule">Days</option>
+          <option value="tomorrow">Tomorrow</option>
+        </select>
+      </div>
+      <div class="form-row" id="value-row">
+        <label class="form-label">VALUE:</label>
+        <input type="text" id="condition-value" placeholder="10000">
+      </div>
+      <div class="form-row">
+        <label class="form-label" style="color: #44ff44">UNLESS (optional):</label>
+        <input type="text" id="exceptions-input" placeholder="whatsapp.com, telegram.org" style="border-color: #44ff44">
+      </div>
+      <div class="btn-row">
+        <button class="btn-cancel" id="cancel-btn">Cancel</button>
+        <button class="btn-save" id="save-btn">Create Rule</button>
+      </div>
+    </div>
+
+    <button class="add-btn" id="add-btn">+ ADD RULE</button>
+  </div>
+
+  <script src="js/popup.js"></script>
+</body>
+</html>
