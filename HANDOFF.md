@@ -1,5 +1,5 @@
-# TotalControl Session 23 Handoff
-**Date:** 2025-12-31
+# TotalControl Session 24 Handoff
+**Date:** 2026-01-01
 
 ## Quick Resume
 ```bash
@@ -7,123 +7,98 @@ mcp__think__think_get branch:totalcontrol count:10
 cd /home/priv/claudes/totalcontrol
 ```
 
-## Session 23 Summary
+## Session 24 Summary
 
-### 1. Pacemeter App (NEW)
-Standalone step counter + GPS activity tracker at `pacemeter/`
+### 1. Both Apps Now Have All Features
+**TotalControl** (com.rhodesai.totalcontrol):
+- Tab 1: Rules/Blocker (primary)
+- Tab 2: GPS Running
+- Background step sync
 
-**Features:**
-- Step counter with Health Connect (Android)
-- GPS activity tracking: Walk, Run, Bike, Hike
-- Live stats: distance, pace, duration
-- Activity history
-- Firebase sync + local file sync
+**Rhodes Run** (com.rhodesai.run):
+- Tab 1: Steps Dashboard (primary)
+- Tab 2: GPS Running
+- Tab 3: Focus/Rules blocker
 
-**Build:**
+### 2. Protection System
+**1-Hour Delay for Weakening Edits:**
+- Delete rule → 1hr wait
+- Disable rule → 1hr wait
+- Reduce targets → 1hr wait
+- Add exceptions → 1hr wait
+- `kDevModeNoDelay = true` in rule.dart:328 for testing
+
+**Uninstall Protection:**
+- Android: Device Admin (TotalControlDeviceAdmin.kt)
+- iOS: Screen Time API (ScreenTimeManager.swift)
+
+### 3. Syllabus Whitelist (NEW)
+Educational/government sites ALWAYS allowed:
+- Major universities (Harvard, MIT, Stanford, Oxford, etc.)
+- LMS (Canvas, Blackboard, Moodle)
+- Gov sites (.gov, .gov.uk, etc.)
+- Educational platforms (Khan Academy, Coursera, etc.)
+- Research (Scholar, JSTOR, arXiv, Wikipedia)
+- Productivity (Google Docs/Drive/Classroom)
+
+See `SYLLABUS_WHITELIST` in extension/js/background.js
+
+### 4. APKs Built
+```
+/home/priv/totalcontrol-debug.apk  (147MB)
+/home/priv/rhodes-run-debug.apk    (165MB)
+```
+
+Build command:
 ```bash
-cd /home/priv/claudes/totalcontrol/pacemeter
-flutter build linux --release  # ✓ Works
-flutter build apk --release    # Needs Android SDK
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export ANDROID_HOME=/home/priv/Android/Sdk
+cd /home/priv/claudes/totalcontrol/flutter_app
+flutter build apk --debug
 ```
 
-**Key Files:**
-```
-pacemeter/
-├── lib/
-│   ├── main.dart
-│   ├── models/activity.dart
-│   ├── services/
-│   │   ├── health_service.dart      # Health Connect
-│   │   ├── location_service.dart    # GPS + Haversine
-│   │   ├── sync_service.dart        # Firebase
-│   │   └── storage_service.dart     # Local storage
-│   └── screens/
-│       ├── home_screen.dart         # Step ring dashboard
-│       ├── activity_screen.dart     # Live tracking
-│       └── history_screen.dart      # Activity log
-└── android/.../AndroidManifest.xml  # Health Connect permissions
-```
+## Key Files Changed
 
-### 2. Cross-Platform DM/Feed Detection
-| Platform | File | Method |
-|----------|------|--------|
-| Browser | `extension/js/background.js` | URL paths |
-| Android | `android/.../SocialAppDetector.kt` | Accessibility |
-| Desktop | `desktop/window_monitor.py` | Window titles |
-| iOS | `ios/.../ScreenAnalyzer.swift` | Tesseract OCR |
+### Flutter App
+- `lib/models/rule.dart` - PendingChange, kDevModeNoDelay
+- `lib/screens/home_screen.dart` - Health tracking with try-catch
+- `lib/screens/run_screen.dart` - GPS running screen
+- `android/.../TotalControlDeviceAdmin.kt` - Uninstall protection
+- `ios/.../ScreenTimeManager.swift` - iOS Screen Time
 
-**Logic:**
-- 1-on-1 DM → ALLOWED
-- Group + @you → ALLOWED (3-min window)
-- Group + @everyone → BLOCKED
-- Feed/Reels → BLOCKED
+### Rhodes Run
+- `lib/screens/run_screen.dart` - GPS running
+- `lib/screens/rules_screen.dart` - Blocker rules
+- `lib/models/rule.dart` - Full rule system
 
-### 3. Dual Extension Protection
-Two extensions watch each other:
-- `extension/` - Main TotalControl
-- `extension-protector/` - Re-enables main if disabled
-
-### 4. Group Chat Ping Detection
-Personal @mentions open 3-minute window. Generic @everyone doesn't count.
-
-## Git Log
-```
-0457782 Add fuzzy site matching, shortcuts, and Adult category
-3f370e9 Extensions auto re-enable each other when disabled
-56cf09f Add dual extension mutual protection system
-2589273 Add group chat ping detection + mutual protection system
-bda1735 Add cross-platform DM/Feed detection system
-```
-
-**Uncommitted:** `pacemeter/` - commit with:
-```bash
-git add pacemeter/ && git commit -m "Add Pacemeter standalone step/GPS tracker"
-```
-
-## Current State
-
-| Component | Status |
-|-----------|--------|
-| Flutter App | ✅ Working |
-| Browser Extension | ✅ Working |
-| Extension Protector | ✅ Working |
-| Pacemeter | ✅ Code ready, needs Android SDK |
-| Android Blocker | ✅ Code ready |
-| Desktop Monitor | ✅ Working |
-| OCR Analyzer | ✅ Working |
-
-## Next Steps - Play Store
-
-1. **Android SDK** on build machine
-2. **Signing keystore**: `keytool -genkey -v -keystore pacemeter.jks -alias pacemeter -keyalg RSA -keysize 2048 -validity 10000`
-3. **Privacy policy** (required for Health Connect)
-4. **Store listing** (screenshots, descriptions)
-
-## Integration
-
-Pacemeter syncs steps to `~/totalcontrol_fitness.json`:
-```json
-{"date": "2025-12-31", "steps": 5000, "workout_mins": 30}
-```
-
-TotalControl desktop reads this via `windows/fitness_sync.py`
+### Extension
+- `js/background.js` - SYLLABUS_WHITELIST + isOnSyllabusWhitelist()
 
 ## Think Chain
-Branch: `totalcontrol`, entries 19-25
+Branch: `totalcontrol`, entries 26-39
+
+## Git Log (Session 24)
+```
+57b7b61 Add symmetry: both apps have blocker + steps + running
+c3c5c5a Rename Pacemeter to Rhodes Run
+269b15b Update Pacemeter: SDK 36, health 13.x, geolocator 14.x
+d9cdbf6 Implement real GPS and Health Connect in Pacemeter
+```
 
 ---
 
 # Previous Sessions
 
+## Session 23
+- Pacemeter standalone app created
+- Cross-platform DM/Feed detection
+- Dual extension protection
+- Group chat ping detection
+
 ## Session 22
-- Sentence-style UI ("DON'T LET ME... UNTIL...")
-- YouTube partial overlay (search bar visible)
+- Sentence-style UI
+- YouTube partial overlay
 - AND logic for conditions
 
-## Session 21
-- Fixed YouTube exception bug
-- Twitter/Discord DM exceptions
-- Video platform blocking
-
 ---
-*Pugnabimus.* Session 23 complete.
+*Pugnabimus.* Session 24 complete.

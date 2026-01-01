@@ -25,6 +25,58 @@ const GENERIC_MENTIONS = [
   '@everyone', '@here', '@channel', '@all', '@room', '@team'
 ];
 
+// ============ SYLLABUS WHITELIST ============
+// Educational/government sites always allowed (never blocked)
+const SYLLABUS_WHITELIST = [
+  // Universities (major ones)
+  'harvard.edu', 'mit.edu', 'stanford.edu', 'berkeley.edu', 'yale.edu',
+  'princeton.edu', 'columbia.edu', 'cornell.edu', 'upenn.edu', 'brown.edu',
+  'dartmouth.edu', 'duke.edu', 'northwestern.edu', 'uchicago.edu', 'caltech.edu',
+  'cmu.edu', 'nyu.edu', 'ucla.edu', 'umich.edu', 'unc.edu', 'uva.edu',
+  'gatech.edu', 'utexas.edu', 'wisc.edu', 'illinois.edu', 'purdue.edu',
+  'osu.edu', 'psu.edu', 'umn.edu', 'ufl.edu', 'uw.edu', 'umd.edu',
+  'ox.ac.uk', 'cam.ac.uk', 'imperial.ac.uk', 'ucl.ac.uk', 'lse.ac.uk',
+  'ed.ac.uk', 'manchester.ac.uk', 'kcl.ac.uk', 'bristol.ac.uk',
+  // Learning Management Systems
+  'canvas', 'blackboard', 'moodle', 'brightspace', 'd2l',
+  'schoology', 'edmodo', 'classdojo',
+  // Government
+  'gov', 'gov.uk', 'gov.au', 'gov.ca', 'europa.eu',
+  'whitehouse.gov', 'congress.gov', 'senate.gov', 'house.gov',
+  'irs.gov', 'ssa.gov', 'medicare.gov', 'usa.gov',
+  'nhs.uk', 'parliament.uk',
+  // Educational platforms
+  'khanacademy.org', 'coursera.org', 'edx.org', 'udacity.com',
+  'udemy.com', 'skillshare.com', 'linkedin.com/learning',
+  'brilliant.org', 'duolingo.com', 'codecademy.com',
+  'freecodecamp.org', 'w3schools.com', 'geeksforgeeks.org',
+  // Research/Reference
+  'scholar.google', 'jstor.org', 'pubmed', 'arxiv.org',
+  'researchgate.net', 'academia.edu', 'sciencedirect.com',
+  'nature.com', 'science.org', 'ieee.org', 'acm.org',
+  'wikipedia.org', 'britannica.com', 'wolframalpha.com',
+  // Productivity (for schoolwork)
+  'docs.google.com', 'drive.google.com', 'sheets.google.com',
+  'slides.google.com', 'forms.google.com', 'classroom.google.com',
+  'notion.so', 'evernote.com', 'onenote.com',
+  'overleaf.com', 'latex', 'grammarly.com',
+  // Libraries
+  'worldcat.org', 'openlibrary.org', 'gutenberg.org',
+];
+
+// Check if URL is on syllabus whitelist (always allowed)
+function isOnSyllabusWhitelist(url) {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return SYLLABUS_WHITELIST.some(site => {
+      const siteLower = site.toLowerCase();
+      return hostname.includes(siteLower) || hostname.endsWith('.' + siteLower);
+    });
+  } catch {
+    return false;
+  }
+}
+
 // ============ PING WINDOW TRACKING ============
 // Stored in chrome.storage.local as { pingWindows: { channelId: expiryTimestamp } }
 
@@ -587,6 +639,12 @@ async function ensureDefaultRules() {
 // Check if URL should be blocked
 async function shouldBlock(url) {
   try {
+    // Syllabus whitelist - educational/gov sites ALWAYS allowed
+    if (isOnSyllabusWhitelist(url)) {
+      console.log('[TotalControl] Syllabus whitelist - allowed:', url);
+      return { blocked: false, reason: 'syllabus_whitelist' };
+    }
+
     const hostname = new URL(url).hostname.replace('www.', '');
     const { rules, progress } = await chrome.storage.local.get(['rules', 'progress']);
 
