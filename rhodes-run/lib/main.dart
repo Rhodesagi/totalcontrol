@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'screens/home_screen.dart';
+import 'screens/run_screen.dart';
+import 'screens/rules_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,7 +46,52 @@ class RhodesRunApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const HomeScreen(),
+      home: const MainNavigation(),
+    );
+  }
+}
+
+class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
+
+  @override
+  State<MainNavigation> createState() => _MainNavigationState();
+}
+
+class _MainNavigationState extends State<MainNavigation> {
+  int _currentIndex = 0;
+
+  final _screens = const [
+    HomeScreen(),   // Steps/Dashboard (primary for Rhodes Run)
+    RunScreen(),    // GPS Running
+    RulesScreen(),  // Blocker rules
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
+        backgroundColor: const Color(0xFF1A1A1A),
+        selectedItemColor: const Color(0xFF00E676),
+        unselectedItemColor: Colors.white54,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.directions_walk),
+            label: 'Steps',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.directions_run),
+            label: 'Run',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.block),
+            label: 'Focus',
+          ),
+        ],
+      ),
     );
   }
 }
