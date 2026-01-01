@@ -1,9 +1,10 @@
-/// GPS location tracking for runs/walks
+// GPS location tracking for runs/walks with real geolocator integration
 
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
-import '../models/activity.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../models/activity.dart' as models;
 
 /// Location tracking service for GPS-based activity recording
 class LocationService {
@@ -11,42 +12,101 @@ class LocationService {
   LocationService._();
 
   bool _isTracking = false;
-  Activity? _currentActivity;
-  final List<GpsPoint> _currentRoute = [];
+  models.Activity? _currentActivity;
+  final List<models.GpsPoint> _currentRoute = [];
   double _totalDistance = 0;
-  DateTime? _lastPointTime;
-  GpsPoint? _lastPoint;
+  models.GpsPoint? _lastPoint;
+  StreamSubscription<Position>? _positionStream;
 
-  final _locationController = StreamController<GpsPoint>.broadcast();
-  final _activityController = StreamController<Activity>.broadcast();
+  final _locationController = StreamController<models.GpsPoint>.broadcast();
+  final _activityController = StreamController<models.Activity>.broadcast();
 
-  Stream<GpsPoint> get locationStream => _locationController.stream;
-  Stream<Activity> get activityStream => _activityController.stream;
+  Stream<models.GpsPoint> get locationStream => _locationController.stream;
+  Stream<models.Activity> get activityStream => _activityController.stream;
 
   bool get isTracking => _isTracking;
-  Activity? get currentActivity => _currentActivity;
-  List<GpsPoint> get currentRoute => List.unmodifiable(_currentRoute);
+  models.Activity? get currentActivity => _currentActivity;
+  List<models.GpsPoint> get currentRoute => List.unmodifiable(_currentRoute);
   double get totalDistance => _totalDistance;
+
+  /// Current pace in minutes per km
+  double get currentPace {
+    if (_currentActivity == null || _totalDistance < 10) return 0;
+    final duration = DateTime.now().difference(_currentActivity!.startTime);
+    final km = _totalDistance / 1000;
+    if (km < 0.01) return 0;
+    return duration.inSeconds / 60 / km; // min/km
+  }
+
+  /// Current speed in km/h
+  double get currentSpeed {
+    if (_lastPoint == null) return 0;
+    return (_lastPoint!.speed ?? 0) * 3.6; // m/s to km/h
+  }
 
   /// Initialize location service
   Future<void> initialize() async {
     debugPrint('[LocationService] Initializing...');
+    await requestPermission();
   }
 
   /// Request location permission
   Future<bool> requestPermission() async {
-    // TODO: Implement with geolocator package
-    await Future.delayed(const Duration(milliseconds: 300));
+    // Check if location service is enabled
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      debugPrint('[LocationService] Location services disabled');
+      return false;
+    }
+
+    // Check permission
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        debugPrint('[LocationService] Location permission denied');
+        return false;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      debugPrint('[LocationService] Location permission permanently denied');
+      return false;
+    }
+
+    // Request background location for tracking during screen off
+    if (permission == LocationPermission.whileInUse) {
+      final bgStatus = await Permission.locationAlways.request();
+      debugPrint('[LocationService] Background location: $bgStatus');
+    }
+
+    debugPrint('[LocationService] Location permission granted');
     return true;
   }
 
+  /// Get current location once
+  Future<models.GpsPoint?> getCurrentLocation() async {
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      return _positionToGpsPoint(position);
+    } catch (e) {
+      debugPrint('[LocationService] Error getting location: $e');
+      return null;
+    }
+  }
+
   /// Start tracking a new activity
-  Future<Activity> startActivity(ActivityType type) async {
+  Future<models.Activity> startActivity(models.ActivityType type) async {
     if (_isTracking) {
       throw Exception('Already tracking an activity');
     }
 
-    final activity = Activity(
+    // Get initial location
+    final initialLocation = await getCurrentLocation();
+
+    final activity = models.Activity(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       type: type,
       startTime: DateTime.now(),
@@ -58,6 +118,12 @@ class LocationService {
     _lastPoint = null;
     _isTracking = true;
 
+    // Add initial point if available
+    if (initialLocation != null) {
+      _currentRoute.add(initialLocation);
+      _lastPoint = initialLocation;
+    }
+
     // Start location updates
     _startLocationUpdates();
 
@@ -66,7 +132,7 @@ class LocationService {
   }
 
   /// Stop tracking and finalize activity
-  Future<Activity> stopActivity() async {
+  Future<models.Activity> stopActivity() async {
     if (!_isTracking || _currentActivity == null) {
       throw Exception('No activity in progress');
     }
@@ -99,40 +165,89 @@ class LocationService {
     _startLocationUpdates();
   }
 
-  Timer? _locationTimer;
-
   void _startLocationUpdates() {
-    // TODO: Replace with actual GPS using geolocator package
-    // For now, simulate location updates
-    _locationTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (!_isTracking) {
-        timer.cancel();
-        return;
-      }
-      _onLocationUpdate(_generateMockLocation());
-    });
+    // High accuracy settings for running/walking
+    const locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 5, // Update every 5 meters
+    );
+
+    // For Android, use more specific settings
+    final androidSettings = AndroidSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 5,
+      forceLocationManager: false,
+      intervalDuration: const Duration(seconds: 1),
+      foregroundNotificationConfig: const ForegroundNotificationConfig(
+        notificationText: 'Pacemeter is tracking your activity',
+        notificationTitle: 'Activity in Progress',
+        enableWakeLock: true,
+      ),
+    );
+
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: defaultTargetPlatform == TargetPlatform.android
+          ? androidSettings
+          : locationSettings,
+    ).listen(
+      (Position position) {
+        if (!_isTracking) return;
+        final point = _positionToGpsPoint(position);
+        _onLocationUpdate(point);
+      },
+      onError: (error) {
+        debugPrint('[LocationService] Location stream error: $error');
+      },
+    );
   }
 
   void _stopLocationUpdates() {
-    _locationTimer?.cancel();
-    _locationTimer = null;
+    _positionStream?.cancel();
+    _positionStream = null;
   }
 
-  void _onLocationUpdate(GpsPoint point) {
+  models.GpsPoint _positionToGpsPoint(Position position) {
+    return models.GpsPoint(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      altitude: position.altitude,
+      speed: position.speed,
+      accuracy: position.accuracy,
+      timestamp: DateTime.now(),
+    );
+  }
+
+  void _onLocationUpdate(models.GpsPoint point) {
+    // Filter out inaccurate points
+    if ((point.accuracy ?? 100) > 30) {
+      debugPrint('[LocationService] Skipping inaccurate point: ${point.accuracy}m');
+      return;
+    }
+
     _currentRoute.add(point);
     _locationController.add(point);
 
     // Calculate distance from last point
     if (_lastPoint != null) {
-      final distance = _calculateDistance(
-        _lastPoint!.latitude, _lastPoint!.longitude,
-        point.latitude, point.longitude,
+      final distance = Geolocator.distanceBetween(
+        _lastPoint!.latitude,
+        _lastPoint!.longitude,
+        point.latitude,
+        point.longitude,
       );
-      _totalDistance += distance;
+
+      // Filter out GPS jumps (unrealistic distance)
+      final timeDiff = point.timestamp.difference(_lastPoint!.timestamp).inSeconds;
+      final maxDistance = timeDiff * 15; // Max 15 m/s (54 km/h) for running
+
+      if (distance < maxDistance) {
+        _totalDistance += distance;
+      } else {
+        debugPrint('[LocationService] Filtering GPS jump: $distance m in $timeDiff s');
+      }
     }
 
     _lastPoint = point;
-    _lastPointTime = point.timestamp;
 
     // Update current activity
     if (_currentActivity != null) {
@@ -144,92 +259,14 @@ class LocationService {
     }
   }
 
-  /// Calculate distance between two GPS points (Haversine formula)
-  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371000.0; // Earth's radius in meters
-    final dLat = _toRadians(lat2 - lat1);
-    final dLon = _toRadians(lon2 - lon1);
-
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_toRadians(lat1)) * cos(_toRadians(lat2)) *
-            sin(dLon / 2) * sin(dLon / 2);
-
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return R * c;
-  }
-
-  double _toRadians(double degrees) => degrees * pi / 180;
-
-  // Mock location for testing
-  GpsPoint _generateMockLocation() {
-    final baseLatitude = 37.7749; // San Francisco
-    final baseLongitude = -122.4194;
-    final random = Random();
-
-    // Slight movement simulation
-    final lat = baseLatitude + (_currentRoute.length * 0.0001) + (random.nextDouble() * 0.0001);
-    final lng = baseLongitude + (_currentRoute.length * 0.0001) + (random.nextDouble() * 0.0001);
-
-    return GpsPoint(
-      latitude: lat,
-      longitude: lng,
-      altitude: 10 + random.nextDouble() * 5,
-      speed: 1.5 + random.nextDouble() * 2, // Walking speed
-      accuracy: 5 + random.nextDouble() * 10,
-      timestamp: DateTime.now(),
-    );
+  /// Calculate distance between two GPS points (Haversine formula) - backup method
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    return Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
   }
 
   void dispose() {
-    _locationTimer?.cancel();
+    _positionStream?.cancel();
     _locationController.close();
     _activityController.close();
   }
 }
-
-/*
-To implement real GPS tracking, add to pubspec.yaml:
-
-dependencies:
-  geolocator: ^11.0.0
-  permission_handler: ^11.0.0
-
-Then update this service:
-
-import 'package:geolocator/geolocator.dart';
-
-class LocationService {
-  StreamSubscription<Position>? _positionStream;
-
-  Future<bool> requestPermission() async {
-    final permission = await Geolocator.requestPermission();
-    return permission == LocationPermission.always ||
-           permission == LocationPermission.whileInUse;
-  }
-
-  void _startLocationUpdates() {
-    const locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 10, // meters
-    );
-
-    _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings)
-        .listen((Position position) {
-      final point = GpsPoint(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        altitude: position.altitude,
-        speed: position.speed,
-        accuracy: position.accuracy,
-        timestamp: DateTime.now(),
-      );
-      _onLocationUpdate(point);
-    });
-  }
-
-  void _stopLocationUpdates() {
-    _positionStream?.cancel();
-    _positionStream = null;
-  }
-}
-*/

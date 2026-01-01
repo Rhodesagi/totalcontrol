@@ -1,4 +1,4 @@
-/// Firebase sync service for cross-device step/activity data
+// Firebase sync service for cross-device step/activity data
 
 import 'dart:async';
 import 'dart:convert';
@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../models/activity.dart';
 
-/// Sync service for Firebase/TotalControl integration
+// Sync service for Firebase/TotalControl integration
 class SyncService {
   static final SyncService instance = SyncService._();
   SyncService._();

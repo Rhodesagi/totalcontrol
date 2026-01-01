@@ -1,4 +1,4 @@
-/// Local storage for activities and settings
+// Local storage for activities and settings
 
 import 'dart:convert';
 import 'dart:io';

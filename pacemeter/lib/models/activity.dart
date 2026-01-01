@@ -1,6 +1,4 @@
-/// Activity and GPS tracking models for Pacemeter
-
-import 'dart:convert';
+// Activity and GPS tracking models for Pacemeter
 
 /// Types of activities
 enum ActivityType {

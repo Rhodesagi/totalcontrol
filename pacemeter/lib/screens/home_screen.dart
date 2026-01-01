@@ -221,12 +221,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildQuickStats() {
+    final distanceKm = _health.distanceToday / 1000;
     return Row(
       children: [
         Expanded(
           child: _StatCard(
             icon: Icons.local_fire_department,
-            value: '0',
+            value: '${_health.caloriesToday.toInt()}',
             label: 'Calories',
             color: Colors.orange,
           ),
@@ -235,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Expanded(
           child: _StatCard(
             icon: Icons.straighten,
-            value: '0.0 km',
+            value: '${distanceKm.toStringAsFixed(1)} km',
             label: 'Distance',
             color: Colors.blue,
           ),
@@ -244,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Expanded(
           child: _StatCard(
             icon: Icons.timer,
-            value: '0 min',
+            value: '${_health.activeMinutesToday} min',
             label: 'Active',
             color: Colors.purple,
           ),
