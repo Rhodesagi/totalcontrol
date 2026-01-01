@@ -10,16 +10,16 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
 
-  runApp(const PacemeterApp());
+  runApp(const RhodesRunApp());
 }
 
-class PacemeterApp extends StatelessWidget {
-  const PacemeterApp({super.key});
+class RhodesRunApp extends StatelessWidget {
+  const RhodesRunApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pacemeter',
+      title: 'Rhodes Run',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

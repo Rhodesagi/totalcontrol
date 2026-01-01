@@ -6,11 +6,11 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pacemeter/main.dart';
+import 'package:rhodes_run/main.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const PacemeterApp());
-    expect(find.text('Pacemeter'), findsOneWidget);
+    await tester.pumpWidget(const RhodesRunApp());
+    expect(find.text('Rhodes Run'), findsOneWidget);
   });
 }

@@ -24,7 +24,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="Pacemeter"
+        android:label="Rhodes Run"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
@@ -64,7 +64,7 @@
 
         <!-- Foreground service for GPS tracking -->
         <service
-            android:name="com.rhodesai.pacemeter.LocationTrackingService"
+            android:name="com.rhodesai.run.LocationTrackingService"
             android:foregroundServiceType="location"
             android:exported="false"/>
 

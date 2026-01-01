@@ -15,7 +15,7 @@ if (keyPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.rhodesai.pacemeter"
+    namespace = "com.rhodesai.run"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -29,7 +29,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.rhodesai.pacemeter"
+        applicationId = "com.rhodesai.run"
         minSdk = 26  // Health Connect requires API 26+
         targetSdk = 34
         versionCode = 1
