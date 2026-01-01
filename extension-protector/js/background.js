@@ -55,12 +55,12 @@ async function isPingWindowActive(channelId) {
 // ============ MUTUAL PROTECTION SYSTEM ============
 // Two extensions watch each other - can't disable both at once
 
-// This is the PROTECTOR extension
-const IS_PROTECTOR = true;
-const PARTNER_EXTENSION_ID = '';  // Set after installing main TotalControl extension
+// This is the MAIN TotalControl extension
+const IS_PROTECTOR = false;
+const PARTNER_EXTENSION_ID = '';  // Set after installing Protector extension
 
 // Set uninstall URL
-chrome.runtime.setUninstallURL('https://totalcontrol.local/protector-uninstalled');
+chrome.runtime.setUninstallURL('https://totalcontrol.local/main-uninstalled');
 
 // Watch for partner extension being disabled/uninstalled
 async function checkPartnerExtension() {
@@ -70,27 +70,25 @@ async function checkPartnerExtension() {
     const info = await chrome.management.get(PARTNER_EXTENSION_ID);
 
     if (!info.enabled) {
-      // Partner is disabled! Alert and take over
-      console.log('[Protector] Partner extension DISABLED - taking over');
+      console.log('[TotalControl] Protector extension DISABLED');
       onPartnerDisabled();
     }
   } catch (e) {
-    // Extension not found - uninstalled!
-    console.log('[Protector] Partner extension UNINSTALLED - taking over');
+    console.log('[TotalControl] Protector extension UNINSTALLED');
     onPartnerUninstalled();
   }
 }
 
 async function onPartnerDisabled() {
-  console.log('[Protector] Re-enabling partner extension...');
+  console.log('[TotalControl] Re-enabling partner extension...');
 
   // RE-ENABLE the partner extension!
   try {
     await chrome.management.setEnabled(PARTNER_EXTENSION_ID, true);
-    console.log('[Protector] Partner re-enabled successfully');
+    console.log('[TotalControl] Partner re-enabled successfully');
     logProtectionEvent('partner_reenabled', { partnerId: PARTNER_EXTENSION_ID });
   } catch (e) {
-    console.log('[Protector] Could not re-enable partner:', e);
+    console.log('[TotalControl] Could not re-enable partner:', e);
     // Only show intervention if re-enable fails
     chrome.tabs.create({
       url: chrome.runtime.getURL('intervention.html'),
@@ -101,18 +99,15 @@ async function onPartnerDisabled() {
 }
 
 function onPartnerUninstalled() {
-  // Open intervention tab
   chrome.tabs.create({
     url: chrome.runtime.getURL('intervention.html'),
     active: true
   });
-
-  // Log event
   logProtectionEvent('partner_uninstalled', { partnerId: PARTNER_EXTENSION_ID });
 }
 
-// Check partner every 5 seconds
-chrome.alarms.create('checkPartner', { periodInMinutes: 0.1 }); // ~6 seconds
+// Check partner every 6 seconds
+chrome.alarms.create('checkPartner', { periodInMinutes: 0.1 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'checkPartner') {
@@ -120,7 +115,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-// Also check on management events
+// Watch management events
 if (chrome.management) {
   chrome.management.onDisabled.addListener((info) => {
     if (info.id === PARTNER_EXTENSION_ID) {
@@ -314,15 +309,167 @@ function isMusicVideo(url, title = '', description = '', channel = '', category 
   );
 }
 
+// ============ SITE MATCHING SYSTEM ============
+// Case-insensitive, fuzzy matching, no domain required
+
+// Common site shortcuts (no .com needed)
+const SITE_SHORTCUTS = {
+  // Social
+  'facebook': 'facebook.com', 'fb': 'facebook.com',
+  'instagram': 'instagram.com', 'insta': 'instagram.com', 'ig': 'instagram.com',
+  'twitter': 'twitter.com', 'x': 'x.com',
+  'tiktok': 'tiktok.com', 'tt': 'tiktok.com',
+  'snapchat': 'snapchat.com', 'snap': 'snapchat.com',
+  'linkedin': 'linkedin.com',
+  'pinterest': 'pinterest.com',
+  'reddit': 'reddit.com',
+  'threads': 'threads.net',
+
+  // Streaming
+  'youtube': 'youtube.com', 'yt': 'youtube.com',
+  'netflix': 'netflix.com',
+  'hulu': 'hulu.com',
+  'disney': 'disneyplus.com', 'disneyplus': 'disneyplus.com',
+  'hbo': 'max.com', 'hbomax': 'max.com', 'max': 'max.com',
+  'prime': 'primevideo.com', 'primevideo': 'primevideo.com',
+  'twitch': 'twitch.tv',
+  'spotify': 'spotify.com',
+  'crunchyroll': 'crunchyroll.com',
+
+  // Messaging
+  'discord': 'discord.com',
+  'slack': 'slack.com',
+  'telegram': 'telegram.org',
+  'whatsapp': 'whatsapp.com',
+  'messenger': 'messenger.com',
+
+  // Gaming
+  'steam': 'store.steampowered.com', 'steampowered': 'store.steampowered.com',
+  'epic': 'epicgames.com', 'epicgames': 'epicgames.com',
+  'roblox': 'roblox.com',
+
+  // Adult (new category)
+  'pornhub': 'pornhub.com', 'ph': 'pornhub.com',
+  'xvideos': 'xvideos.com',
+  'xnxx': 'xnxx.com',
+  'xhamster': 'xhamster.com',
+  'redtube': 'redtube.com',
+  'youporn': 'youporn.com',
+  'onlyfans': 'onlyfans.com', 'of': 'onlyfans.com',
+  'chaturbate': 'chaturbate.com',
+};
+
 // Default blocked domains by category
 const CATEGORIES = {
-  'Social Media': ['facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'tiktok.com', 'snapchat.com', 'linkedin.com', 'pinterest.com', 'reddit.com'],
-  'Streaming': ['netflix.com', 'youtube.com', 'hulu.com', 'disneyplus.com', 'hbomax.com', 'max.com', 'twitch.tv', 'primevideo.com', 'spotify.com'],
+  'Social Media': ['facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'tiktok.com', 'snapchat.com', 'linkedin.com', 'pinterest.com', 'reddit.com', 'threads.net'],
+  'Streaming': ['netflix.com', 'youtube.com', 'hulu.com', 'disneyplus.com', 'hbomax.com', 'max.com', 'twitch.tv', 'primevideo.com', 'spotify.com', 'crunchyroll.com'],
   'Messaging': ['whatsapp.com', 'web.whatsapp.com', 'telegram.org', 'discord.com', 'slack.com', 'messenger.com'],
   'Gaming': ['store.steampowered.com', 'epicgames.com', 'roblox.com', 'minecraft.net'],
-  'News': ['cnn.com', 'bbc.com', 'foxnews.com', 'nytimes.com'],
-  'Dating': ['tinder.com', 'bumble.com', 'hinge.co', 'okcupid.com', 'match.com']
+  'News': ['cnn.com', 'bbc.com', 'foxnews.com', 'nytimes.com', 'washingtonpost.com'],
+  'Dating': ['tinder.com', 'bumble.com', 'hinge.co', 'okcupid.com', 'match.com'],
+  'Adult': ['pornhub.com', 'xvideos.com', 'xnxx.com', 'xhamster.com', 'redtube.com', 'youporn.com', 'onlyfans.com', 'chaturbate.com', 'livejasmin.com', 'stripchat.com']
 };
+
+// Normalize site input - handles shortcuts, case, missing domain
+function normalizeSite(input) {
+  if (!input) return null;
+
+  let site = input.trim().toLowerCase();
+
+  // Remove protocol if present
+  site = site.replace(/^https?:\/\//, '');
+
+  // Remove www. prefix
+  site = site.replace(/^www\./, '');
+
+  // Remove trailing slashes/paths
+  site = site.split('/')[0];
+
+  // Check shortcuts first
+  if (SITE_SHORTCUTS[site]) {
+    return SITE_SHORTCUTS[site];
+  }
+
+  // If no TLD, add .com
+  if (!site.includes('.')) {
+    site = site + '.com';
+  }
+
+  return site;
+}
+
+// Calculate Levenshtein distance for fuzzy matching
+function levenshtein(a, b) {
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b[i-1] === a[j-1]) {
+        matrix[i][j] = matrix[i-1][j-1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i-1][j-1] + 1,
+          matrix[i][j-1] + 1,
+          matrix[i-1][j] + 1
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+// Fuzzy match site - allows 1 typo for sites 5+ chars
+function fuzzyMatchSite(input, target) {
+  const inputLower = input.toLowerCase();
+  const targetLower = target.toLowerCase();
+
+  // Exact match
+  if (inputLower === targetLower) return true;
+
+  // Contains match
+  if (targetLower.includes(inputLower) || inputLower.includes(targetLower)) return true;
+
+  // Remove TLD for comparison
+  const inputBase = inputLower.replace(/\.(com|org|net|tv|co|io)$/, '');
+  const targetBase = targetLower.replace(/\.(com|org|net|tv|co|io)$/, '');
+
+  if (inputBase === targetBase) return true;
+
+  // Fuzzy match - allow 1 typo for sites 5+ chars
+  if (inputBase.length >= 5) {
+    const distance = levenshtein(inputBase, targetBase);
+    if (distance <= 1) return true;
+  }
+
+  return false;
+}
+
+// Check if URL matches any blocked site (with fuzzy matching)
+function matchesBlockedSite(url, blockedSites) {
+  const hostname = new URL(url).hostname.toLowerCase();
+
+  for (const site of blockedSites) {
+    const normalizedSite = normalizeSite(site);
+    if (!normalizedSite) continue;
+
+    // Direct match
+    if (hostname.includes(normalizedSite) || normalizedSite.includes(hostname)) {
+      return { matched: true, site: normalizedSite };
+    }
+
+    // Fuzzy match
+    if (fuzzyMatchSite(hostname, normalizedSite)) {
+      return { matched: true, site: normalizedSite, fuzzy: true };
+    }
+  }
+
+  return { matched: false };
+}
 
 // Initialize storage with defaults
 chrome.runtime.onInstalled.addListener(async () => {
