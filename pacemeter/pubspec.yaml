@@ -36,15 +36,15 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # Health Connect / HealthKit integration
-  health: ^10.2.0
+  health: ^13.0.0
 
   # GPS location tracking
-  geolocator: ^12.0.0
-  permission_handler: ^11.3.0
+  geolocator: ^14.0.0
+  permission_handler: ^12.0.0
 
   # Local storage
-  path_provider: ^2.1.2
-  shared_preferences: ^2.2.2
+  path_provider: ^2.1.5
+  shared_preferences: ^2.5.0
 
 dev_dependencies:
   flutter_test:
